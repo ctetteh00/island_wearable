@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <h1>Your Personal Heat Risk Calculator</h1>
+
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+ <!-- The core Firebase JS SDK is always required and must be listed first -->
+ <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+ <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+ <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+
+ <script>
+ // REPLACE WITH YOUR web app's Firebase configuration
+ const firebaseConfig = { apiKey: "AIzaSyBCGRSbRu-nXQZbRS1puLU_bRv-U4lj_m8",
+   authDomain: "island-wearable.firebaseapp.com",
+   databaseURL: "https://island-wearable-default-rtdb.firebaseio.com",
+   projectId: "island-wearable",
+   storageBucket: "island-wearable.firebasestorage.app",
+   messagingSenderId: "6859507432",
+   appId: "1:6859507432:web:b0b8c8ca2ff2cfd472ab5d" };
+
+ // Initialize Firebase
+ firebase.initializeApp(firebaseConfig);
+ var database = firebase.database();
+</script>
+<script src="app.js" defer></script>
+</head>
+<link rel="stylesheet" href="style.css">
+
+<body>
+  <div class="finalcontainer">
+    <h2 style="margin-bottom: 5px">Final Heat Score:</h2>
+    <p style="margin-top: 5px; margin-bottom: 2px;"><i><span id="fHR_strain"></span></i></p> 
+    <span id="finalHeatScore"></span>
+    <br>
+    <h4 style="display: inline-block;"> Temperature: </h4>
+    <span id="reading-tempA"></span>
+    <h4 style="display: inline-block; margin-left: 40px;"> Relative Humidity:</h4>
+    <span id="reading-humidity"></span>
+    <br>
+    <!-- <h4 style="display: inline-block; text-align: center;"> Recommendations:</h4>
+    <p style="margin-top: 0px;"><span id="mPSI_rec">Suggested action based on your final heat score. </span></p> -->
+    <!--     <p><span id="hI_rec"></span></p>
+    <p><span id="pHR_rec"></span></p> -->
+  <div>
+    
+  <div class="mycontainer" id="mPSICircle">
+    <h2 style="margin-bottom: 2px;">mPSI</h2>
+    <p style="margin-top: 5px; margin-bottom: 2px;"><i><span id="mPSI_strain">No to Extreme Strain (0-10)</span></i></p>
+    <span id="mPSI"></span>
+  </div>
+
+
+  <div class="mycontainer" id="heatIndexCircle">
+    <h2 style="margin-bottom: 2px;">Heat Index</h2>
+    <p style="margin-top: 5px; margin-bottom: 2px;"><i><span id=hI_strain> Normal to Extreme Weather (1-5) </span></i></p> 
+    <span id="heatIndex"></span>
+  </div>
+
+
+  <div class="mycontainer" id="personalHeatRiskCircle">
+    <h2 style="margin-bottom: 2px;">Personal Heat Risk</h2>
+    <p style="margin-top: 5px; margin-bottom: 2px;"><i><span id="pHR_strain">No to Serious Additional Heat Risk (1-5)</span></i></p> 
+    <span id="heatRiskScore"></span>
+  </div>
+
+  <br><br><br>
+
+    <div class="container" id="container">
+      <h2>Personal Heat Risk</h2>
+      <h4>Enter parameters to obtain base-level personal heat risk.</h4>
+
+      <label for="age">Age Group:</label>
+      <select id="age">
+          <option value="1">20-24</option>
+          <option value="2">25-29</option>
+          <option value="3">30-34</option>
+          <option value="4">35-39</option>
+          <option value="5">40-44</option>
+          <option value="6">45-49</option>
+          <option value="7">50-54</option>
+          <option value="8">55-59</option>
+          <option value="9">60-64</option>
+          <option value="10">65-69</option>
+          <option value="11">Over 70</option>
+      </select><br><br>
+  
+
+      <label for="restingHR"> Resting Heart Rate:</label>
+      <input type="number" id="restingHR" name="restingHR" placeholder="Enter Resting Heart Rate"><br><br>
+
+      <label for="workType">Intensity of Labor:</label>
+      <select id="workType">
+          <option style="text-align: center;" value="1">Walking/standing while picking flowers or vegetables</option>
+          <option style="text-align: center;" value="2">Digging, spading, filling garden, composting (light-to-moderate effort)</option>
+          <option style="text-align: center;" value="3">Raking lawn or leaves (moderate effort)</option>
+          <option style="text-align: center;" value="4">Planting seedlings, crops, shrubs, including stooping (moderate effort)</option>
+          <option style="text-align: center;" value="5">Pushing a wheelbarrow or large garden cart</option>
+          <option style="text-align: center;" value="6">Mowing lawn, walking with a power mower (moderate-to-vigorous effort)</option>
+          <option style="text-align: center;" value="7">Weeding, cultivating garden, hoeing (moderate-to-vigorous effort)</option>
+          <option style="text-align: center;" value="8">Mowing lawn with a push or hand mower (vigorous effort)</option>
+      </select><br><br>
+
+      <label for="activity">Standard Activity Level:</label>
+      <select id="activity" name="activity">
+        <option value="1">More than 5 times a week</option>
+        <option value="2">Less than 4 times a week</option>
+        <option value="3">Less than 3 times a week</option>
+        <option value="4">Less than 2 times a week</option>
+        <option value="5">Little to no activity</option>
+      </select><br><br>
+    
+      <label for="medications">Medications (Start typing):</label>
+      <input list="medicationList" id="medications" name="medications" placeholder="Enter medication names"><br><br>
+      <datalist id="medicationList">
+        <option value="furosemide">
+        <option value="hydrochlorothiazide">
+        <option value="acetazolamide">
+        <option value="atenolol">
+        <option value="metoprolol">
+        <option value="propranolol">
+        <option value="amlodipine">
+        <option value="felodipine">
+        <option value="nifedipine">
+        <option value="enalapril">
+        <option value="lisinopril">
+        <option value="ramipril">
+        <option value="valsartan">
+        <option value="losartan">
+        <option value="clopidogrel">
+        <option value="aspirin">
+        <option value="fluoxetine">
+        <option value="sertraline">
+      </datalist>
+  
+      <p style="margin-top: 0px; margin-bottom: 10px; ">Select any Comorbidities:</p>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+        <label style="margin-right: 5px;">
+          <input type="checkbox" id="obesity" name="comorbidities" value="1"> Obesity
+        </label>
+        <label style="margin-right: 5px;">
+          <input type="checkbox" id="diabetes" name="comorbidities" value="2"> Diabetes
+        </label>
+        <label style="margin-right: 5px;">
+          <input type="checkbox" id="highBloodPressure" name="comorbidities" value="3"> High Blood Pressure
+        </label>
+        <label>
+          <input type="checkbox" id="cardiovascularDisease" name="comorbidities" value="4"> Cardiovascular Disease
+        </label>
+      </div>
+
+      <br>
+      <label for="clothing">Clothing Material/Layers:</label>
+      <select style="display: inline-block;" id="clothing" name="clothing">
+        <option value="1">Cotton/polyester, one layer</option>
+        <option value="2">Cotton/polyester, two layers</option>
+        <option value="3">Nylon, two layers</option>
+        <option value="4">Nylon, more than two layers</option>
+        <option value="5">Nylon, three layers</option>
+      </select><br><br>
+  
+      <label for="sleep">Sleep Conditions:</label>
+      <select id="sleep" name="sleep">
+        <option value="5">Less than 6 hours, 2-3 interruptions</option>
+        <option value="4">Less than 7 hours, 2-3 interruptions</option>
+        <option value="3">7-8 hours, 1-2 interruptions</option>
+        <option value="2">8 hours, 1-2 interruptions</option>
+        <option value="1">8 hours, no interruption</option>
+      </select><br><br>
+
+
+    </div>
+    <br>
+    <button id="calculate" onclick="calculateQuality()">Calculate</button>
+    <button id="recalculate" class="hidden" type="button" onclick="resetForm()">Update Parameters</button>
+
+    <h3>Recommendations</h3>
+
+  <fieldset id="recommendations_mPSI" class="hidden">
+  <p class="recommendation-header">Your body is <b><span id="mPSI_rec"></span></b></p>
+  <ol style="text-align: left;">
+    <li >Find ways to cool your body down:
+      <ul>
+        <li>Drink cool water even if you are not thirsty — at least 1 cup every 20 minutes</li>
+        <li>Take breaks in a shady or cool location</li>
+      </ul>
+    </li>
+    <li>Find ways to slow your heart rate:
+      <ul>
+        <li>Stop or slow down activity, take intermittent breaks, switch to less strenuous tasks</li>
+      </ul>
+    </li>
+  </ol>
+</fieldset>
+
+<fieldset id="recommendations_HI" class="hidden">
+  <div class="recommendation-header">
+  <p> It is a hot day outside. </p>
+  <p style="display: inline">The environment outside is in the <b><span id="hI_recLevel"></span></b></p>
+  <p style="display: inline">Zone.</p>
+  <p>In these conditions, <b><span id="hI_rec"></span></b></p>
+</div>
+</fieldset>
+
+<fieldset id="recommendations_pHR" class="hidden">
+  <p class="recommendation-header" style="display: inline;">You are at <b><span id="pHR_rec"></span></b></p>
+  <p style="display: inline">based on your personal factors.</p>
+  <ol style="text-align: left;">
+    <li>Your body is not the same as everyone else; yours may be more sensitive to hot conditions than others;
+      take it slow, even if it seems like other people are still working
+    </li>
+    <li>If you are wearing heavy clothing, this may be increasing your risk:
+      If possible, strip down to clothing that is as light and breathable as possible; lose layers,
+      wear clothing made of breathable materials
+    </li>
+  </ol>
+</fieldset>
+
+</script>
+   <br>
+   <br>
+   <br>
+   <br>
+</body>
+</html>
