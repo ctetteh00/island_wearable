@@ -51,7 +51,8 @@ function calculateMPSI(currentTemp, currentHR) {
     console.log("mPSI_temp", mPSI_temp);
     console.log("mPSI_HR", mPSI_HR);
     console.log("mPSI", mPSI_temp+mPSI_HR);
-    return mPSI_temp + mPSI_HR;
+    const raw_mPSI = mPSI_temp + mPSI_HR;
+    return (9*raw_mPSI)/8+1
 }
 
 // Calculate Heat Index
@@ -97,7 +98,6 @@ function getAgeScore() {
 
 // Color mappings
 function setmPSIColor(value) {
-    // nconst intepret =  document.getElementById("mPSI_strain").textContent; 
     if (value <= 3) {
         document.getElementById("mPSI_strain").textContent = "Little to No Strain";
         return "green";
@@ -151,6 +151,7 @@ function updateColor() {
     if (!isNaN(mPSIVal)) document.getElementById("mPSICircle").style.backgroundColor = setmPSIColor(mPSIVal);
     if (!isNaN(HIVal)) document.getElementById("heatIndexCircle").style.backgroundColor = sethIColor(HIVal);
     if (!isNaN(pHRVal)) document.getElementById("personalHeatRiskCircle").style.backgroundColor = setpHRColor(pHRVal);
+    
 
 }
 
@@ -221,7 +222,7 @@ function calcAndDisplay() {
     console.log("getRiskLEvel", heatIndex);
     const personalScore = parseFloat(document.getElementById("heatRiskScore").textContent) || 0;
     console.log("personalScore", personalScore);
-    const finalHeatScore = 0.4 * (mPSI / 8) + 0.4 * ((heatIndex - 1) / 9) + 0.2 * ((personalScore - 1) / 4);
+    const finalHeatScore = 0.4 * (mPSI / 10) + 0.4 * (heatIndex / 5) + 0.2 * (personalScore / 5);
     console.log("finalHeatScore", finalHeatScore);
     display(mPSI, heatIndex, finalHeatScore);
     updateColor();
