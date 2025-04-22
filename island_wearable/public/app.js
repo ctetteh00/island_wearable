@@ -19,22 +19,16 @@ let restingHR = 70;
 
 // Calculate mPSI
 function calculateMPSI(currentTemp, currentHR) {
-    //console.log("calculateMPSI called");
     const age = parseInt(document.getElementById('age').value) || 22;
-    //console.log("age", age);
     const estimatedHR = estimateHR(currentHR, age);
-    //console.log("currentHR", currentHR);
-    //console.log("estimatedHR", estimatedHR);
     currentT = convertF(currentTemp);
     minT = convertF(minTemp);
     const mPSI_temp = 5 * (currentT - minT) / ((39.5 - .25*getAgeScore()) - minT);
     const mPSI_HR = 5 * (estimatedHR - currentHR) / ((220-age) - currentHR);
-    //console.log("mPSI_temp", mPSI_temp);
-    //console.log("mPSI_HR", mPSI_HR);
-    //console.log("mPSI", mPSI_temp+mPSI_HR);
     const raw_mPSI = mPSI_temp + mPSI_HR;
     return ((9*raw_mPSI)/8)+1
 }
+
 // Estimate HR based on age
 function estimateHR(avgHR, age) {
     let intensity = 0;
@@ -74,7 +68,6 @@ function getAgeScore() {
 
 // Calculate Heat Index
 function calculateHI(RH, T) {
-    //console.log("calculateHI called");
     let hI = T;
     if (T >= 80) {
         hI = -42.379 + 2.04901523 * T + 10.14333127 * RH - 0.22475541 * T * RH
@@ -88,9 +81,6 @@ function calculateHI(RH, T) {
             hI += ((RH - 85) / 10) * ((87 - T) / 5);
         }
     }
-    //console.log("calculateHI", hI);
-    //console.log("RH", RH);
-    //console.log("T", T);
     return hI;
 }
 // Risk level
@@ -161,6 +151,7 @@ function updateColor() {
 
 }
 
+// determine and set recommendation text based on values 
 function setRec(){
     document.getElementById("mPSI_rec").textContent = setmPSIrec(); 
     let [level, message] = sethIrec();
@@ -171,11 +162,11 @@ function setRec(){
 
 function setmPSIrec(){
     const mPSI = parseFloat(document.getElementById("mPSI").textContent);
-    if (4 < mPSI <=5) return "tired but not at risk."
-    if (5 < mPSI <=6) return "very tired but not at risk."
-    if (6 < mPSI <=7.5) return "very tired, nearly at risk."
-    if (7.5 < mPSI <=8.5) return "exhausted, at risk."
-    return "exhausted, at extreme risk."
+    if (4 < mPSI <=5) return "tired but not at risk of heat related injury."
+    if (5 < mPSI <=6) return "very tired but not at risk of heat related injury."
+    if (6 < mPSI <=7.5) return "very tired, nearly at risk of heat related injury."
+    if (7.5 < mPSI <=8.5) return "exhausted, at risk of heat related injury."
+    return "exhausted, at extreme risk of heat related injury."
 }
 
 function sethIrec() {
@@ -219,20 +210,15 @@ function updateVal(mPSI, HI, fHR) {
 // Full final score calculation
 function calculatefHR(){
 restingHR = parseInt(document.getElementById('restingHR')) || 70;
-// console.log("calcfHR called");
 const mPSI = calculateMPSI(tempSReading, restingHR);
-//console.log("calculateMPSI", mPSI);
 const HI = calculateHI(humReading, tempAReading);
-// console.log("HI calculated:", HI);
 const heatIndex = getRiskLevel(HI);
-// console.log("getRiskLEvel", heatIndex);
 const personalScore = parseFloat(document.getElementById("heatRiskScore").textContent) || 0;
-// console.log("personalScore", personalScore);
 const finalHeatScore = 0.4 * (mPSI / 10) + 0.4 * (heatIndex / 5) + 0.2 * (personalScore / 5);
-//console.log("finalHeatScore", finalHeatScore);
 return [mPSI, heatIndex, personalScore, finalHeatScore]
 }
 
+// display recalculate button
 function recalculateButton(){
     const container = document.getElementById("container");
     console.log("container", container);
@@ -280,33 +266,20 @@ function calculatepHR() {
 }
 
 function onButtonPress(){  
-    recalculateButton()
-
-    //calculate personalScore
+    recalculateButton(); // display recalculate butoton
     calculatepHR(); 
-
-    // calculate final heat risk 
-    results = calculatefHR(); 
+    results = calculatefHR(); // calculate final heat risk 
     mPSI = results[0];
     hI = results[1];
     pHR = results[2];
     fHR = results[3]; 
-
-    //update values
-    updateVal(mPSI, hI,fHR);
-
-    //update colors
-    updateColor();
-
-    //determine recommendation text
-    setRec();
-
+    updateVal(mPSI, hI,fHR);  //update values
+    updateColor();  //update colors
+    setRec();  //determine recommendation text
     //display final heat risk score
     document.getElementById('finalHeatScore').classList.remove('hidden');
     document.getElementById('recalculate').classList.remove('hidden');
-    
-    //display recommendation
-    displayRec()
+    displayRec()     //display recommendation
     
 }
 
@@ -370,11 +343,13 @@ databaseHum.on('value', (snapshot) => {
     console.log('The read failed: ' + errorObject.name);
 });
 
+// Track the lowest skin temperature for mPSI reference
 function updateMinimums() {
     if (tempSReading !== undefined) minTemp = Math.min(minTemp, tempSReading);
     lastMinUpdateTime = Date.now();
 }
 
+// Periodically check if we need to update minimums
 function updatePage() {
     const now = Date.now();
     if (now - lastMinUpdateTime > MIN_UPDATE_INTERVAL) updateMinimums();
