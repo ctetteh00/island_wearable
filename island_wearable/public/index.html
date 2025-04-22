@@ -33,7 +33,7 @@
 
 <body>
   <div class="finalcontainer">
-    <h2 style="margin-bottom: 5px">Final Heat Score:</h2>
+    <h2 style="margin-bottom: 5px">Final Heat Score</h2>
     <p style="margin-top: 5px; margin-bottom: 2px;"><i><span id="fHR_strain">No to Extreme Risk (1-5)</span></i></p> 
     <span id="finalHeatScore"></span>
     <br>
@@ -50,7 +50,7 @@
     
   <div class="mycontainer" id="mPSICircle">
     <h2 style="margin-bottom: 2px;">mPSI</h2>
-    <p style="margin-top: 5px; margin-bottom: 2px;"><i><span id="mPSI_strain">No to Extreme Strain (0-10)</span></i></p>
+    <p style="margin-top: 5px; margin-bottom: 2px;"><i><span id="mPSI_strain">No to Extreme Strain (1-10)</span></i></p>
     <span id="mPSI"></span>
   </div>
 
@@ -76,17 +76,17 @@
 
       <label for="age">Age Group:</label>
       <select id="age">
-          <option value="1">20-24</option>
-          <option value="2">25-29</option>
-          <option value="3">30-34</option>
-          <option value="4">35-39</option>
-          <option value="5">40-44</option>
-          <option value="6">45-49</option>
-          <option value="7">50-54</option>
-          <option value="8">55-59</option>
-          <option value="9">60-64</option>
-          <option value="10">65-69</option>
-          <option value="11">Over 70</option>
+          <option value="22">20-24</option>
+          <option value="27">25-29</option>
+          <option value="32">30-34</option>
+          <option value="37">35-39</option>
+          <option value="42">40-44</option>
+          <option value="47">45-49</option>
+          <option value="52">50-54</option>
+          <option value="57">55-59</option>
+          <option value="62">60-64</option>
+          <option value="67">65-69</option>
+          <option value="70">Over 70</option>
       </select><br><br>
   
 
@@ -175,7 +175,7 @@
 
     </div>
     <br>
-    <button id="calculate" onclick="calculateQuality()">Calculate</button>
+    <button id="calculate" onclick="onButtonPress()">Calculate</button>
     <button id="recalculate" class="hidden" type="button" onclick="resetForm()">Update Parameters</button>
 
     <h3>Recommendations</h3>
@@ -207,8 +207,9 @@
 </fieldset>
 
 <fieldset id="recommendations_pHR" class="hidden">
-  <p class="recommendation-header" style="display: inline;">You are at <b><span id="pHR_rec"></span></b></p>
-  <p style="display: inline">based on your personal factors.</p>
+  <div style="text-align: left;">
+    <p class="recommendation-header">You are at <b><span id="pHR_rec"></span></b> based on your personal factors.</p>
+  </div>
   <ol style="text-align: left;">
     <li>Your body is not the same as everyone else; yours may be more sensitive to hot conditions than others;
       take it slow, even if it seems like other people are still working

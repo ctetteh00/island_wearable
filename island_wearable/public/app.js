@@ -17,10 +17,29 @@ let lastMinUpdateTime = 0;
 const MIN_UPDATE_INTERVAL = 10000;
 let restingHR = 70;
 
+// Calculate mPSI
+function calculateMPSI(currentTemp, currentHR) {
+    //console.log("calculateMPSI called");
+    const age = parseInt(document.getElementById('age').value) || 22;
+    //console.log("age", age);
+    const estimatedHR = estimateHR(currentHR, age);
+    //console.log("currentHR", currentHR);
+    //console.log("estimatedHR", estimatedHR);
+    currentT = convertF(currentTemp);
+    minT = convertF(minTemp);
+    const mPSI_temp = 5 * (currentT - minT) / ((39.5 - .25*getAgeScore()) - minT);
+    const mPSI_HR = 5 * (estimatedHR - currentHR) / ((220-age) - currentHR);
+    //console.log("mPSI_temp", mPSI_temp);
+    //console.log("mPSI_HR", mPSI_HR);
+    //console.log("mPSI", mPSI_temp+mPSI_HR);
+    const raw_mPSI = mPSI_temp + mPSI_HR;
+    return ((9*raw_mPSI)/8)+1
+}
 // Estimate HR based on age
 function estimateHR(avgHR, age) {
     let intensity = 0;
     const workType = parseInt(document.getElementById('workType').value);
+    console.log("workType", workType);
     if ([1].includes(workType)) {
        intensity = 0.30;
     } else if ([2].includes(workType)) {
@@ -36,28 +55,26 @@ function estimateHR(avgHR, age) {
     } else if ([8].includes(workType)) {
        intensity = 0.6;
     }
-    return avgHR + Math.floor((220 - age) * intensity);
+    return avgHR + (Math.floor((220 - age)-avgHR) * intensity);
 }
 
-// Calculate mPSI
-function calculateMPSI(currentTemp, currentHR) {
-    console.log("calculateMPSI called");
+function convertF(temp){
+    return (temp-32)* 5/9; 
+}
+
+// Get numeric age score
+function getAgeScore() {
     const age = parseInt(document.getElementById('age').value);
-    const estimatedHR = estimateHR(currentHR, age);
-    console.log("currentHR", currentHR);
-    console.log("estimatedHR", estimatedHR);
-    const mPSI_temp = 5 * (currentTemp - minTemp) / (103.1 - minTemp); //F
-    const mPSI_HR = 5 * (estimatedHR - currentHR) / (180 - currentHR);
-    console.log("mPSI_temp", mPSI_temp);
-    console.log("mPSI_HR", mPSI_HR);
-    console.log("mPSI", mPSI_temp+mPSI_HR);
-    const raw_mPSI = mPSI_temp + mPSI_HR;
-    return (9*raw_mPSI)/8+1
+    if ([22, 27, 32, 37].includes(age)) return 1;
+    if ([42, 47].includes(age)) return 2;
+    if ([52, 57].includes(age)) return 3;
+    if ([62, 67].includes(age)) return 4;
+    return 5;
 }
 
 // Calculate Heat Index
 function calculateHI(RH, T) {
-    console.log("calculateHI called");
+    //console.log("calculateHI called");
     let hI = T;
     if (T >= 80) {
         hI = -42.379 + 2.04901523 * T + 10.14333127 * RH - 0.22475541 * T * RH
@@ -71,12 +88,11 @@ function calculateHI(RH, T) {
             hI += ((RH - 85) / 10) * ((87 - T) / 5);
         }
     }
-    console.log("calculateHI", hI);
-    console.log("RH", RH);
-    console.log("T", T);
+    //console.log("calculateHI", hI);
+    //console.log("RH", RH);
+    //console.log("T", T);
     return hI;
 }
-
 // Risk level
 function getRiskLevel(heatIndex) {
     if (heatIndex < 80) return 1;
@@ -85,16 +101,6 @@ function getRiskLevel(heatIndex) {
     if (heatIndex < 125) return 4;
     return 5;
 }
-
-// Get numeric age score
-function getAgeScore() {
-    const age = parseInt(document.getElementById('age').value);
-    if ([1, 2, 3, 4].includes(age)) return 1;
-    if ([5, 6].includes(age)) return 2;
-    if ([7, 8].includes(age)) return 3;
-    if ([9, 10].includes(age)) return 4;
-    return 5;
-  }
 
 // Color mappings
 function setmPSIColor(value) {
@@ -155,7 +161,7 @@ function updateColor() {
 
 }
 
-function recommendations(){
+function setRec(){
     document.getElementById("mPSI_rec").textContent = setmPSIrec(); 
     let [level, message] = sethIrec();
     document.getElementById("hI_recLevel").textContent = level;
@@ -189,8 +195,7 @@ function sethIrec() {
     }
     
     return ["Normal", "no special action needed"];
-  }
-  
+  }  
 
 function setpHRrec(){
     const pHR = parseFloat(document.getElementById("heatRiskScore").textContent);
@@ -201,7 +206,7 @@ function setpHRrec(){
 }
 
 // Update displayed values
-function display(mPSI, HI, fHR) {
+function updateVal(mPSI, HI, fHR) {
     const mPSIElement = document.getElementById("mPSI");
     const HIElement = document.getElementById("heatIndex");
     const fHRElement = document.getElementById("finalHeatScore");
@@ -212,26 +217,23 @@ function display(mPSI, HI, fHR) {
 }
 
 // Full final score calculation
-function calcAndDisplay() {
-    console.log("calcAndDisplay called");
-    const mPSI = calculateMPSI(tempSReading, restingHR);
-    console.log("calculateMPSI", mPSI);
-    const HI = calculateHI(humReading, tempAReading);
-    console.log("HI calculated:", HI);
-    const heatIndex = getRiskLevel(HI);
-    console.log("getRiskLEvel", heatIndex);
-    const personalScore = parseFloat(document.getElementById("heatRiskScore").textContent) || 0;
-    console.log("personalScore", personalScore);
-    const finalHeatScore = 0.4 * (mPSI / 10) + 0.4 * (heatIndex / 5) + 0.2 * (personalScore / 5);
-    console.log("finalHeatScore", finalHeatScore);
-    display(mPSI, heatIndex, finalHeatScore);
-    updateColor();
-    recommendations();
+function calculatefHR(){
+restingHR = parseInt(document.getElementById('restingHR')) || 70;
+// console.log("calcfHR called");
+const mPSI = calculateMPSI(tempSReading, restingHR);
+//console.log("calculateMPSI", mPSI);
+const HI = calculateHI(humReading, tempAReading);
+// console.log("HI calculated:", HI);
+const heatIndex = getRiskLevel(HI);
+// console.log("getRiskLEvel", heatIndex);
+const personalScore = parseFloat(document.getElementById("heatRiskScore").textContent) || 0;
+// console.log("personalScore", personalScore);
+const finalHeatScore = 0.4 * (mPSI / 10) + 0.4 * (heatIndex / 5) + 0.2 * (personalScore / 5);
+//console.log("finalHeatScore", finalHeatScore);
+return [mPSI, heatIndex, personalScore, finalHeatScore]
 }
 
-// Personal risk score calculation
-function calculateQuality() {
-    console.log("calculateQuality called!");
+function recalculateButton(){
     const container = document.getElementById("container");
     console.log("container", container);
     const recalculateButton = document.getElementById("recalculate");
@@ -243,7 +245,11 @@ function calculateQuality() {
     recalculateButton.classList.remove("hidden");
     document.getElementById('calculate').classList.add('hidden');
     }
-    
+}
+
+// Personal risk score calculation
+function calculatepHR() {
+    console.log("calculatePHR called!");
     let weights = {
         clothing: 0.145, age: 0.21, activity: 0.145,
         medications: 0.145, comorbidities: 0.21, sleep: 0.145
@@ -267,35 +273,59 @@ function calculateQuality() {
     let score = clothing * weights.clothing + ageScore * weights.age + activity * weights.activity +
                 Math.min(medScore, 5) * weights.medications + comorbidities * weights.comorbidities +
                 sleep * weights.sleep;
+    
 
-    document.getElementById('heatRiskScore').textContent = score.toFixed(2);
-    restingHR = parseInt(document.getElementById('restingHR')) || 70;
-    calcAndDisplay();
+    // display value 
+    document.getElementById('heatRiskScore').textContent = score.toFixed(2);  
+}
 
+function onButtonPress(){  
+    recalculateButton()
+
+    //calculate personalScore
+    calculatepHR(); 
+
+    // calculate final heat risk 
+    results = calculatefHR(); 
+    mPSI = results[0];
+    hI = results[1];
+    pHR = results[2];
+    fHR = results[3]; 
+
+    //update values
+    updateVal(mPSI, hI,fHR);
+
+    //update colors
+    updateColor();
+
+    //determine recommendation text
+    setRec();
+
+    //display final heat risk score
     document.getElementById('finalHeatScore').classList.remove('hidden');
     document.getElementById('recalculate').classList.remove('hidden');
     
+    //display recommendation
+    displayRec()
+    
+}
+
+function displayRec(){
     const mPSIVal = parseFloat(document.getElementById("mPSI").textContent);
     console.log("mPSI:", mPSIVal);
-    
     if (!isNaN(mPSIVal) && mPSIVal >= 4) {
         document.getElementById("recommendations_mPSI").classList.remove("hidden");
     }
-    
     const hIVal = parseFloat(document.getElementById("heatIndex").textContent);
     console.log("Heat Index:", hIVal);
-    
     if (!isNaN(hIVal) && hIVal >= 2) {
         document.getElementById("recommendations_HI").classList.remove("hidden");
     }
-    
     const pHRVal = parseFloat(document.getElementById("heatRiskScore").textContent);
     console.log("Personal Heat Risk:", pHRVal);
-    
     if (!isNaN(pHRVal) && pHRVal >= 2) {
         document.getElementById("recommendations_pHR").classList.remove("hidden");
     }
-       
 }
 
 // Reset form
